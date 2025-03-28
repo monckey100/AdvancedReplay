@@ -165,7 +165,7 @@ public class ReplayingUtils {
 				ChatData chatData = (ChatData) action.getPacketData();
 				
 				replayer.sendMessage(new MessageBuilder(ConfigManager.CHAT_FORMAT)
-						.set("name", action.getName())
+						.set("name", action.getAlias())
 						.set("message", chatData.getMessage())
 						.build());
 			}
@@ -365,12 +365,12 @@ public class ReplayingUtils {
 				replayer.getNPCList().remove(action.getName());
 
 				SpawnData oldSpawnData = new SpawnData(npc.getUuid(), LocationData.fromLocation(npc.getLocation()), signatures.get(action.getName()));
-				this.lastSpawnActions.addLast(new ActionData(0, ActionType.SPAWN, action.getName(), oldSpawnData));
+				this.lastSpawnActions.addLast(new ActionData(0, ActionType.SPAWN, action.getName(), oldSpawnData, action.getAlias()));
 
 				if (action.getType() == ActionType.DESPAWN) {
-					replayer.sendMessage(Messages.REPLAYING_PLAYER_LEAVE.arg("name", action.getName()));
+					replayer.sendMessage(Messages.REPLAYING_PLAYER_LEAVE.arg("name", action.getAlias()));
 				} else {
-					replayer.sendMessage(Messages.REPLAYING_PLAYER_DEATH.arg("name", action.getName()));
+					replayer.sendMessage(Messages.REPLAYING_PLAYER_DEATH.arg("name", action.getAlias()));
 				}
 
 			} else {
@@ -464,16 +464,16 @@ public class ReplayingUtils {
 	private void spawnNPC(ActionData action) {
 		SpawnData spawnData = (SpawnData) action.getPacketData();
 		
-		int tabMode = Bukkit.getPlayer(action.getName()) != null ? 0 : 2;
+		int tabMode = Bukkit.getPlayer(action.getAlias()) != null ? 0 : 2;
 		
 		if (VersionUtil.isAbove(VersionEnum.V1_14) && Bukkit.getPlayer(action.getName()) != null) {
 			tabMode = 2;
 			spawnData.setUuid(UUID.randomUUID());
 		}
 		
-		INPC npc = !VersionUtil.isCompatible(VersionEnum.V1_8) ? new PacketNPC(MathUtils.randInt(10000, 20000), spawnData.getUuid(), action.getName()) : new PacketNPCOld(MathUtils.randInt(10000, 20000), spawnData.getUuid(), action.getName());
+		INPC npc = !VersionUtil.isCompatible(VersionEnum.V1_8) ? new PacketNPC(MathUtils.randInt(10000, 20000), spawnData.getUuid(), action.getAlias()) : new PacketNPCOld(MathUtils.randInt(10000, 20000), spawnData.getUuid(), action.getAlias());
 		this.replayer.getNPCList().put(action.getName(), npc);
-		this.replayer.getReplay().getData().getWatchers().put(action.getName(), new PlayerWatcher(action.getName()));
+		this.replayer.getReplay().getData().getWatchers().put(action.getName(), new PlayerWatcher(action.getName(),action.getAlias()));
 		Location spawn = LocationData.toLocation(spawnData.getLocation());
 		
 		if (VersionUtil.isCompatible(VersionEnum.V1_8)) {
@@ -484,18 +484,18 @@ public class ReplayingUtils {
 			npc.setData(new MetadataBuilder(this.replayer.getWatchingPlayer()).setArrows(0).resetValue().getData());
 		}
 		
-		if (ConfigManager.HIDE_PLAYERS && !action.getName().equals(this.replayer.getWatchingPlayer().getName())) {
+		if (ConfigManager.HIDE_PLAYERS && !action.getAlias().equals(this.replayer.getWatchingPlayer().getName())) {
 			tabMode = 2;
 		}
 		
-		if ((spawnData.getSignature() != null && (Bukkit.getPlayer(action.getName()) == null || VersionUtil.isAbove(VersionEnum.V1_14))) || (spawnData.getSignature() != null && ConfigManager.HIDE_PLAYERS && !action.getName().equals(this.replayer.getWatchingPlayer().getName()))) {
-			WrappedGameProfile profile = new WrappedGameProfile(spawnData.getUuid(), action.getName());
+		if ((spawnData.getSignature() != null && (Bukkit.getPlayer(action.getAlias()) == null || VersionUtil.isAbove(VersionEnum.V1_14))) || (spawnData.getSignature() != null && ConfigManager.HIDE_PLAYERS && !action.getAlias().equals(this.replayer.getWatchingPlayer().getName()))) {
+			WrappedGameProfile profile = new WrappedGameProfile(spawnData.getUuid(), action.getAlias());
 			WrappedSignedProperty signed = new WrappedSignedProperty(spawnData.getSignature().getName(), spawnData.getSignature().getValue(), spawnData.getSignature().getSignature());
 			profile.getProperties().put(spawnData.getSignature().getName(), signed);
 			npc.setProfile(profile);
 			
-			if (!this.signatures.containsKey(action.getName())) {
-				this.signatures.put(action.getName(), spawnData.getSignature());
+			if (!this.signatures.containsKey(action.getAlias())) {
+				this.signatures.put(action.getAlias(), spawnData.getSignature());
 			}
 		}
 		

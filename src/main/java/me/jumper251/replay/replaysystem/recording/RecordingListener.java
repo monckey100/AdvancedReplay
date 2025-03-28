@@ -216,7 +216,7 @@ public class RecordingListener extends AbstractListener {
 	public void onQuit(PlayerQuitEvent e) {
 		Player p = e.getPlayer();
 		if (this.recorder.getPlayers().contains(p.getName())) {
-			this.recorder.addData(this.recorder.getCurrentTick(), new ActionData(0, ActionType.DESPAWN, p.getName(), null));
+			this.recorder.addData(this.recorder.getCurrentTick(), new ActionData(0, ActionType.DESPAWN, p.getName(), null,this.recorder.getPlayerAliases().get(p.getName())));
 			this.recorder.getPlayers().remove(p.getName());
 			
 			if (!this.replayLeft.contains(p.getName())) this.replayLeft.add(p.getName());
@@ -228,9 +228,9 @@ public class RecordingListener extends AbstractListener {
 		Player p = e.getPlayer();
 		if (!this.recorder.getPlayers().contains(p.getName()) && (this.replayLeft.contains(p.getName())) || ConfigManager.ADD_PLAYERS) {
 			this.recorder.getPlayers().add(p.getName());
-			this.recorder.getData().getWatchers().put(p.getName(), new PlayerWatcher(p.getName()));
+			this.recorder.getData().getWatchers().put(p.getName(), new PlayerWatcher(p.getName(),p.getName()));
 			this.recorder.createSpawnAction(p, p.getLocation(), false);
-			this.recorder.addData(this.recorder.getCurrentTick(), new ActionData(this.recorder.getCurrentTick(), ActionType.MESSAGE, p.getName(), new ChatData(Messages.REPLAYING_PLAYER_JOIN.arg("name", p.getName()).build())));
+			this.recorder.addData(this.recorder.getCurrentTick(), new ActionData(this.recorder.getCurrentTick(), ActionType.MESSAGE, p.getName(), new ChatData(Messages.REPLAYING_PLAYER_JOIN.arg("name", p.getName()).build()),this.recorder.getPlayerAliases().get(p.getName())));
 			
 		}
 	}
@@ -239,7 +239,7 @@ public class RecordingListener extends AbstractListener {
 	public void onDeath(PlayerDeathEvent e) {
 		Player p = e.getEntity();
 		if (this.recorder.getPlayers().contains(p.getName())) {
-			this.recorder.addData(this.recorder.getCurrentTick(), new ActionData(0, ActionType.DEATH, p.getName(), null));
+			this.recorder.addData(this.recorder.getCurrentTick(), new ActionData(0, ActionType.DEATH, p.getName(), null,this.recorder.getPlayerAliases().get(p.getName())));
 		}
 	}
 	

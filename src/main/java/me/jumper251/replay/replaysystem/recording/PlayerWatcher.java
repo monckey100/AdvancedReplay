@@ -18,15 +18,16 @@ public class PlayerWatcher implements Serializable{
 	
 	private boolean sneaking, burning, blocking, elytra, swimming;
 	
-	private String name;
+	private String name, alias;
 	
-	public PlayerWatcher(String name) {
+	public PlayerWatcher(String name, String alias) {
 		this.sneaking = false;
 		this.burning = false;
 		this.blocking = false;
 		this.elytra = false;
 		this.swimming = false;
 		this.name = name;
+		this.alias = alias;
 	}
 	
 	public WrappedDataWatcher getMetadata(MetadataBuilder builder) {
@@ -144,4 +145,8 @@ public class PlayerWatcher implements Serializable{
 		return name;
 	}
 	
+	public String getAlias() {
+		return alias;
+	}
+		
 }

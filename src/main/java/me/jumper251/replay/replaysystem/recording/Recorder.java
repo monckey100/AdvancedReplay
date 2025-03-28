@@ -38,6 +38,7 @@ import me.jumper251.replay.utils.fetcher.WebsiteFetcher;
 public class Recorder {
 
 	private List<String> players;
+	private Map<String, String> playerAliases;
 	
 	private Replay replay;
 	
@@ -51,6 +52,7 @@ public class Recorder {
 	
 	public Recorder(Replay replay, List<Player> players, CommandSender sender) {
 		this.players = new ArrayList<String>();
+		this.playerAliases = new HashMap<String, String>();
 		this.data = new ReplayData();
 		this.replay = replay;
 		this.sender = sender;
@@ -58,7 +60,26 @@ public class Recorder {
 		HashMap<String, PlayerWatcher> tmpWatchers = new HashMap<String, PlayerWatcher>();
 		for (Player player: players) {
 			this.players.add(player.getName());
-			tmpWatchers.put(player.getName(), new PlayerWatcher(player.getName()));
+			this.playerAliases.put(player.getName(), player.getName());
+			tmpWatchers.put(player.getName(), new PlayerWatcher(player.getName(),player.getName()));
+		}
+		
+		this.data.setWatchers(tmpWatchers);
+	}
+	
+	public Recorder(Replay replay, List<Player> players, CommandSender sender, Map<Player, String> playerAliases) {
+		this.players = new ArrayList<String>();
+		this.playerAliases = new HashMap<String, String>();
+		this.data = new ReplayData();
+		this.replay = replay;
+		this.sender = sender;
+		
+		HashMap<String, PlayerWatcher> tmpWatchers = new HashMap<String, PlayerWatcher>();
+		for (Player player: players) {
+			String alias = playerAliases.getOrDefault(player, player.getName());
+			this.players.add(player.getName());
+			this.playerAliases.put(player.getName(), alias);
+			tmpWatchers.put(player.getName(), new PlayerWatcher(player.getName(),alias));
 		}
 		
 		this.data.setWatchers(tmpWatchers);
@@ -96,7 +117,7 @@ public class Recorder {
 						if (packetData instanceof ChatData && !ConfigManager.RECORD_CHAT) continue;
 
 
-						ActionData actionData = new ActionData(currentTick, ActionType.PACKET, name, packetData);
+						ActionData actionData = new ActionData(currentTick, ActionType.PACKET, name, packetData, playerAliases.get(name));
 						addData(currentTick, actionData);
 						
 
@@ -114,7 +135,7 @@ public class Recorder {
 						for (String names : players) {
 							List<PacketData> customList = hook.onRecord(names);
 							customList.stream().filter(Objects::nonNull).forEach(customData -> {
-								ActionData customAction = new ActionData(currentTick, ActionType.CUSTOM, names, customData);
+								ActionData customAction = new ActionData(currentTick, ActionType.CUSTOM, names, customData, playerAliases.get(names));
 								addData(currentTick, customAction);
 							});
 
@@ -169,13 +190,13 @@ public class Recorder {
 	
 	public void createSpawnAction(Player player, Location loc, boolean first) {
 		SignatureData[] signArr = new SignatureData[1];
-		
-		if (!Bukkit.getOnlineMode() && ConfigManager.USE_OFFLINE_SKINS) {
+		String alias = this.playerAliases.get(player.getName());
+		if ((!Bukkit.getOnlineMode() && ConfigManager.USE_OFFLINE_SKINS) || alias != player.getName()) {
 			new BukkitRunnable() {
 				
 				@Override
 				public void run() {
-					PlayerInfo info = (PlayerInfo) WebsiteFetcher.getJson("https://api.mojang.com/users/profiles/minecraft/" + player.getName(), true, new JsonData(true, new PlayerInfo()));
+					PlayerInfo info = (PlayerInfo) WebsiteFetcher.getJson("https://api.mojang.com/users/profiles/minecraft/" + alias, true, new JsonData(true, new PlayerInfo()));
 
 					if (info != null) {		
 						SkinInfo skin = (SkinInfo) WebsiteFetcher.getJson("https://sessionserver.mojang.com/session/minecraft/profile/" + info.getId() + "?unsigned=false", true, new JsonData(true, new SkinInfo()));
@@ -184,10 +205,10 @@ public class Recorder {
 						signArr[0] =  new SignatureData(props.get("name"), props.get("value"), props.get("signature"));
 					}
 					
-					ActionData spawnData = new ActionData(0, ActionType.SPAWN, player.getName(), new SpawnData(player.getUniqueId(), LocationData.fromLocation(loc), signArr[0]));
+					ActionData spawnData = new ActionData(0, ActionType.SPAWN, player.getName(), new SpawnData(player.getUniqueId(), LocationData.fromLocation(loc), signArr[0]),playerAliases.get(player.getName()));
 					addData(first ? 0 : currentTick, spawnData);
 				
-					ActionData invData = new ActionData(0, ActionType.PACKET, player.getName(), NPCManager.copyFromPlayer(player, true, true));
+					ActionData invData = new ActionData(0, ActionType.PACKET, player.getName(), NPCManager.copyFromPlayer(player, true, true),playerAliases.get(player.getName()));
 					addData(first ? 0 : currentTick, invData);
 				}
 			}.runTaskAsynchronously(ReplaySystem.getInstance());
@@ -200,11 +221,11 @@ public class Recorder {
 			}
 		}
 		
-		if (!ConfigManager.USE_OFFLINE_SKINS || Bukkit.getOnlineMode()) {
-			ActionData spawnData = new ActionData(0, ActionType.SPAWN, player.getName(), new SpawnData(player.getUniqueId(), LocationData.fromLocation(loc), signArr[0]));
+		if (alias == player.getName() && (!ConfigManager.USE_OFFLINE_SKINS || Bukkit.getOnlineMode())) {
+			ActionData spawnData = new ActionData(0, ActionType.SPAWN, player.getName(), new SpawnData(player.getUniqueId(), LocationData.fromLocation(loc), signArr[0]),playerAliases.get(player.getName()));
 			addData(currentTick, spawnData);
 		
-			ActionData invData = new ActionData(currentTick, ActionType.PACKET, player.getName(), NPCManager.copyFromPlayer(player, true, true));
+			ActionData invData = new ActionData(currentTick, ActionType.PACKET, player.getName(), NPCManager.copyFromPlayer(player, true, true),playerAliases.get(player.getName()));
 			addData(currentTick, invData);
 		}
 	}
@@ -212,7 +233,9 @@ public class Recorder {
 	public List<String> getPlayers() {
 		return players;
 	}
-	
+	public Map<String,String> getPlayerAliases() {
+		return playerAliases;
+	}
 	public ReplayData getData() {
 		return data;
 	}

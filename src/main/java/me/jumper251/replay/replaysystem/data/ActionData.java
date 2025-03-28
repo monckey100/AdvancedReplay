@@ -19,12 +19,14 @@ public class ActionData implements Serializable{
 	private PacketData packetData;
 	
 	private String name;
+	private String alias;
 	
-	public ActionData(int tickIndex, ActionType type, String name, PacketData packetData) {
+	public ActionData(int tickIndex, ActionType type, String name, PacketData packetData, String alias) {
 		this.tickIndex = tickIndex;
 		this.type = type;
 		this.packetData = packetData;
 		this.name = name;
+		this.alias = alias;
 	}
 	
 	public int getTickIndex() {
@@ -42,4 +44,8 @@ public class ActionData implements Serializable{
 	public String getName() {
 		return name;
 	}
+	
+	public String getAlias() {
+		return alias;
+	}	
 }

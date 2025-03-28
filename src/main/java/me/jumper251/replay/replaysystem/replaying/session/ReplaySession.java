@@ -55,28 +55,28 @@ public class ReplaySession {
 		this.level = this.player.getLevel();
 		this.xp = this.player.getExp();
 
-		this.player.setHealth(this.player.getMaxHealth());
-		this.player.setFoodLevel(20);
-		this.player.getInventory().clear();
+		// this.player.setHealth(this.player.getMaxHealth());
+		// this.player.setFoodLevel(20);
+		// this.player.getInventory().clear();
 		
-		ItemConfigOption teleport = ItemConfig.getItem(ItemConfigType.TELEPORT);
-		ItemConfigOption time = ItemConfig.getItem(ItemConfigType.SPEED);
-		ItemConfigOption leave = ItemConfig.getItem(ItemConfigType.LEAVE);
-		ItemConfigOption backward = ItemConfig.getItem(ItemConfigType.BACKWARD);
-		ItemConfigOption forward = ItemConfig.getItem(ItemConfigType.FORWARD);
-		ItemConfigOption pauseResume = ItemConfig.getItem(ItemConfigType.PAUSE);
+//		ItemConfigOption teleport = ItemConfig.getItem(ItemConfigType.TELEPORT);
+//		ItemConfigOption time = ItemConfig.getItem(ItemConfigType.SPEED);
+//		ItemConfigOption leave = ItemConfig.getItem(ItemConfigType.LEAVE);
+//		ItemConfigOption backward = ItemConfig.getItem(ItemConfigType.BACKWARD);
+//		ItemConfigOption forward = ItemConfig.getItem(ItemConfigType.FORWARD);
+//		ItemConfigOption pauseResume = ItemConfig.getItem(ItemConfigType.PAUSE);
+//
+//		List<ItemConfigOption> configItems = Arrays.asList(teleport, time, leave, backward, forward, pauseResume);
 
-		List<ItemConfigOption> configItems = Arrays.asList(teleport, time, leave, backward, forward, pauseResume);
-
-		configItems.stream()
-			.filter(ItemConfigOption::isEnabled)
-			.forEach(item -> {
-				this.player.getInventory().setItem(item.getSlot(), ReplayHelper.createItem(item));
-			});
+//		configItems.stream()
+//			.filter(ItemConfigOption::isEnabled)
+//			.forEach(item -> {
+//				this.player.getInventory().setItem(item.getSlot(), ReplayHelper.createItem(item));
+//			});
+//		
 		
-		
-		this.player.setAllowFlight(true);
-		this.player.setFlying(true);
+		// this.player.setAllowFlight(true);
+		// this.player.setFlying(true);
 		
 		if (ConfigManager.HIDE_PLAYERS) {
 			for (Player all : Bukkit.getOnlinePlayers()) {
@@ -102,8 +102,8 @@ public class ReplaySession {
 			@Override
 			public void run() {
 				resetPlayer();
-				
-				player.teleport(start);
+				// don't teleport player anymore
+				// player.teleport(start);
 				
 				
 				if (ConfigManager.HIDE_PLAYERS) {
@@ -123,13 +123,13 @@ public class ReplaySession {
 	}
 	
 	public void resetPlayer() {
-		player.getInventory().clear();
-		player.getInventory().setContents(content);
-		
-		if (player.getGameMode() != GameMode.CREATIVE) {
-			player.setFlying(false);
-			player.setAllowFlight(false);
-		}
+//		player.getInventory().clear();
+//		player.getInventory().setContents(content);
+//		
+//		if (player.getGameMode() != GameMode.CREATIVE) {
+//			player.setFlying(false);
+//			player.setAllowFlight(false);
+//		}
 
 		if (ConfigManager.PROGRESS_TYPE == ReplayProgressType.XP_BAR) {
 			player.setLevel(level);

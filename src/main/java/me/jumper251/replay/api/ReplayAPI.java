@@ -3,6 +3,7 @@ package me.jumper251.replay.api;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 import me.jumper251.replay.replaysystem.replaying.Replayer;
 import org.bukkit.Bukkit;
@@ -52,6 +53,14 @@ public class ReplayAPI {
 		if (name != null) replay.setId(name);
 		replay.recordAll(players, sender);
 		
+		return replay;
+	}
+
+	public Replay recordReplay(String name, CommandSender sender, List<Player> players, Map<Player, String> playerAliases) {
+		Replay replay = new Replay();
+		if (name != null) replay.setId(name);
+		replay.recordAllWithAliases(players, sender, playerAliases);
+
 		return replay;
 	}
 

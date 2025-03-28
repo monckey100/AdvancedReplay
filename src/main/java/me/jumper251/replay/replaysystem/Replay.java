@@ -1,13 +1,12 @@
 package me.jumper251.replay.replaysystem;
 
 import java.util.Arrays;
-
 import java.util.List;
+import java.util.Map;
 
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
-
 
 import me.jumper251.replay.ReplaySystem;
 import me.jumper251.replay.replaysystem.data.ReplayData;
@@ -52,7 +51,14 @@ public class Replay {
 		this.isRecording = true;
 		
 		ReplayManager.activeReplays.put(this.id, this);
+	}
 
+	public void recordAllWithAliases(List<Player> players, CommandSender sender, Map<Player, String> playerAliases) {
+		this.recorder = new Recorder(this, players, sender, playerAliases);
+		this.recorder.start();
+		this.isRecording = true;
+
+		ReplayManager.activeReplays.put(this.id, this);
 	}
 	
 	public void play(Player watcher) {
