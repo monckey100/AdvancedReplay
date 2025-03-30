@@ -284,7 +284,7 @@ public class ReplayListener extends AbstractListener {
 			if (packetListener.getPrevious() != -1) {
 				packetListener.setCamera(p, p.getEntityId(), packetListener.getPrevious());
 				
-				p.setAllowFlight(true);
+				// p.setAllowFlight(true);
 			}
 		}
 

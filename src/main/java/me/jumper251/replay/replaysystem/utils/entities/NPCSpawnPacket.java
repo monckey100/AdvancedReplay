@@ -20,11 +20,16 @@ public class NPCSpawnPacket {
         this.spawnNamedEntity = spawnNamedEntity;
     }
 
+    public NPCSpawnPacket(WrapperPlayServerSpawnEntity spawnEntity, EntityType type) {
+        this.spawnEntity = spawnEntity;
+        spawnEntity.getHandle().getEntityTypeModifier().write(0, type);
+    }
+
     public NPCSpawnPacket(WrapperPlayServerSpawnEntity spawnEntity) {
         this.spawnEntity = spawnEntity;
         spawnEntity.getHandle().getEntityTypeModifier().write(0, EntityType.PLAYER);
     }
-
+    
     public void setEntityID(int id) {
         if (isOld()) {
             spawnNamedEntity.setEntityID(id);

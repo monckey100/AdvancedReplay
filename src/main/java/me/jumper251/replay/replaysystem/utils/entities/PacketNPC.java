@@ -11,6 +11,7 @@ import com.comphenix.protocol.events.PacketContainer;
 import com.comphenix.protocol.wrappers.*;
 import com.google.common.collect.Lists;
 import org.bukkit.Location;
+import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 
 import com.comphenix.packetwrapper.WrapperPlayServerScoreboardTeam.Mode;
@@ -32,6 +33,8 @@ public class PacketNPC implements INPC{
 	
 	private String name;
 	
+	private EntityType type;
+	
 	private int tabMode;
 	
 	private WrappedDataWatcher data;
@@ -50,23 +53,24 @@ public class PacketNPC implements INPC{
 	
 	private List<WrapperPlayServerEntityEquipment> lastEquipment;
 	
-	public PacketNPC(int id, UUID uuid, String name) {
+	public PacketNPC(int id, UUID uuid, String name, String type) {
 		this.id = id;
 		this.uuid = uuid;
 		this.name = name;
+		this.type = EntityType.fromName(type);
 		this.tabMode = 1;
 		this.lastEquipment = new ArrayList<>();
 		this.visible = new Player[]{};
 
         if (VersionUtil.isAbove(VersionEnum.V1_20)) {
-			this.spawnPacket = new NPCSpawnPacket(new WrapperPlayServerSpawnEntity());
+			this.spawnPacket = new NPCSpawnPacket(new WrapperPlayServerSpawnEntity(), this.type);
 		} else {
 			this.spawnPacket = new NPCSpawnPacket(new WrapperPlayServerNamedEntitySpawn());
 		}
 	}
 	
 	public PacketNPC() {
-		this(MathUtils.randInt(50000, 400000), UUID.randomUUID(), StringUtils.getRandomString(6));
+		this(MathUtils.randInt(50000, 400000), UUID.randomUUID(), StringUtils.getRandomString(6), "PLAYER");
 	}
 	
 	public void spawn(Location loc, int tabMode, Player... players) {

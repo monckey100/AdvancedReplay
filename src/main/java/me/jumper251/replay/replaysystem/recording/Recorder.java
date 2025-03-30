@@ -1,5 +1,8 @@
 package me.jumper251.replay.replaysystem.recording;
 
+import java.io.File;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -7,12 +10,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
-import me.jumper251.replay.replaysystem.data.types.*;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
+import org.json.simple.JSONObject;
 
 import com.comphenix.protocol.wrappers.WrappedGameProfile;
 import com.comphenix.protocol.wrappers.WrappedSignedProperty;
@@ -28,13 +31,23 @@ import me.jumper251.replay.replaysystem.data.ActionData;
 import me.jumper251.replay.replaysystem.data.ActionType;
 import me.jumper251.replay.replaysystem.data.ReplayData;
 import me.jumper251.replay.replaysystem.data.ReplayInfo;
+import me.jumper251.replay.replaysystem.data.types.BlockChangeData;
+import me.jumper251.replay.replaysystem.data.types.ChatData;
+import me.jumper251.replay.replaysystem.data.types.EntityAnimationData;
+import me.jumper251.replay.replaysystem.data.types.EntityData;
+import me.jumper251.replay.replaysystem.data.types.EntityItemData;
+import me.jumper251.replay.replaysystem.data.types.EntityMovingData;
+import me.jumper251.replay.replaysystem.data.types.LocationData;
+import me.jumper251.replay.replaysystem.data.types.PacketData;
+import me.jumper251.replay.replaysystem.data.types.SignatureData;
+import me.jumper251.replay.replaysystem.data.types.SpawnData;
 import me.jumper251.replay.replaysystem.utils.NPCManager;
+import me.jumper251.replay.utils.MojangSkinGenerator;
 import me.jumper251.replay.utils.ReplayManager;
 import me.jumper251.replay.utils.fetcher.JsonData;
 import me.jumper251.replay.utils.fetcher.PlayerInfo;
 import me.jumper251.replay.utils.fetcher.SkinInfo;
 import me.jumper251.replay.utils.fetcher.WebsiteFetcher;
-
 public class Recorder {
 
 	private List<String> players;
@@ -187,10 +200,67 @@ public class Recorder {
 			ReplayManager.activeReplays.remove(this.replay.getId());
 		}
 	}
-	
+    private boolean isInDirectory(File file, File directory) {
+        Path filePath = Paths.get(file.toURI()).toAbsolutePath().normalize();
+        Path directoryPath = Paths.get(directory.toURI()).toAbsolutePath().normalize();
+        return filePath.startsWith(directoryPath);
+    }
 	public void createSpawnAction(Player player, Location loc, boolean first) {
 		SignatureData[] signArr = new SignatureData[1];
 		String alias = this.playerAliases.get(player.getName());
+		   String skinFile = ConfigManager.cfg.getString("Skins." + alias + ".File");
+		    String skinURL = ConfigManager.cfg.getString("Skins." + alias + ".URL");
+
+		    if ((skinFile != null && !skinFile.isEmpty()) || (skinURL != null && !skinURL.isEmpty())) {
+		        // Process the custom skin asynchronously.
+		            try {
+		                JSONObject data = null;
+		                if (skinFile != null && !skinFile.isEmpty()) {
+		                    // Assume skins are stored in a "skins" folder inside your plugin's data folder.
+		                    File skinsFolder = new File(ReplaySystem.getInstance().getDataFolder(), "skins");
+		                    File skin = new File(skinsFolder, skinFile);
+		                    // Validate the file.
+		                    if (!skin.exists() || !skin.isFile() || skin.isHidden() || !isInDirectory(skin, skinsFolder)) {
+		                        // Optionally log or notify an error here.
+		                        return;
+		                    }
+		                    byte[] skinBytes = java.nio.file.Files.readAllBytes(skin.toPath());
+		                    // Generate skin data from the PNG bytes.
+		                    data = MojangSkinGenerator.generateFromPNG(skinBytes, false);
+		                } else {
+		                    // Generate skin data from the URL.
+		                    data = MojangSkinGenerator.generateFromURL(skinURL, false);
+		                }
+		                
+		                // Extract texture info from the returned JSON.
+		                JSONObject textureObj = (JSONObject) data.get("texture");
+		                String textureEncoded = (String) textureObj.get("value");
+		                String signature = (String) textureObj.get("signature");
+		                
+		                SignatureData customSkin = new SignatureData("textures", textureEncoded, signature);
+		                // Schedule a synchronous task to add the spawn and inventory actions.
+
+	                    ActionData spawnData = new ActionData(
+	                        0, ActionType.SPAWN, player.getName(),
+	                        new SpawnData(player.getUniqueId(), LocationData.fromLocation(loc), customSkin),
+	                        playerAliases.get(player.getName())
+	                    );
+	                    addData(first ? 0 : currentTick, spawnData);
+	                    
+	                    ActionData invData = new ActionData(
+	                        first ? 0 : currentTick, ActionType.PACKET, player.getName(),
+	                        NPCManager.copyFromPlayer(player, true, true),
+	                        playerAliases.get(player.getName())
+	                    );
+	                    addData(first ? 0 : currentTick, invData);
+
+		            } catch (Exception e) {
+		                e.printStackTrace();
+		            }
+		        // Return early since the custom skin is being processed.
+		        return;
+		    }
+	    
 		if ((!Bukkit.getOnlineMode() && ConfigManager.USE_OFFLINE_SKINS) || alias != player.getName()) {
 			new BukkitRunnable() {
 				

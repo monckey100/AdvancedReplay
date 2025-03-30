@@ -126,10 +126,11 @@ public class ReplaySession {
 //		player.getInventory().clear();
 //		player.getInventory().setContents(content);
 //		
-//		if (player.getGameMode() != GameMode.CREATIVE) {
-//			player.setFlying(false);
-//			player.setAllowFlight(false);
-//		}
+		if (player.getGameMode() != GameMode.CREATIVE) {
+			player.setFlying(false);
+			player.setAllowFlight(false);
+			packetListener.setCamera(player, player.getEntityId(), 0F);
+		}
 
 		if (ConfigManager.PROGRESS_TYPE == ReplayProgressType.XP_BAR) {
 			player.setLevel(level);

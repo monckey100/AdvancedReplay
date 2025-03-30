@@ -470,8 +470,9 @@ public class ReplayingUtils {
 			tabMode = 2;
 			spawnData.setUuid(UUID.randomUUID());
 		}
-		
-		INPC npc = !VersionUtil.isCompatible(VersionEnum.V1_8) ? new PacketNPC(MathUtils.randInt(10000, 20000), spawnData.getUuid(), action.getAlias()) : new PacketNPCOld(MathUtils.randInt(10000, 20000), spawnData.getUuid(), action.getAlias());
+		String entityType = ConfigManager.cfg.getString("Skins." + action.getAlias() + ".Type", "PLAYER");
+
+		INPC npc = !VersionUtil.isCompatible(VersionEnum.V1_8) ? new PacketNPC(MathUtils.randInt(10000, 20000), spawnData.getUuid(), action.getAlias(), entityType) : new PacketNPCOld(MathUtils.randInt(10000, 20000), spawnData.getUuid(), action.getAlias());
 		this.replayer.getNPCList().put(action.getName(), npc);
 		this.replayer.getReplay().getData().getWatchers().put(action.getName(), new PlayerWatcher(action.getName(),action.getAlias()));
 		Location spawn = LocationData.toLocation(spawnData.getLocation());
