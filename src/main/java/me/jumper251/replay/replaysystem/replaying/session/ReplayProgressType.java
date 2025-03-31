@@ -32,7 +32,11 @@ public enum ReplayProgressType implements ReplayProgression {
             String speed = replayer.getSpeed() + "x";
 
             BaseComponent component = TextComponent.fromLegacy(String.format(format, status, formatTime(currentTicks), formatTime(duration), speed));
-            replayer.getWatchingPlayer().spigot().sendMessage(ChatMessageType.ACTION_BAR, component);
+            
+            // only send if operator
+            if(replayer.getWatchingPlayer().isOp()) {
+            	replayer.getWatchingPlayer().spigot().sendMessage(ChatMessageType.ACTION_BAR, component);
+            }
         }
     },
     NONE {
